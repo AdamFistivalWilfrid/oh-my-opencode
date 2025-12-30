@@ -54,6 +54,7 @@ export const HookNameSchema = z.enum([
   "empty-task-response-detector",
   "think-mode",
   "anthropic-context-window-limit-recovery",
+  "rate-limit-recovery",
   "rules-injector",
   "background-notification",
   "auto-update-checker",
@@ -69,6 +70,10 @@ export const HookNameSchema = z.enum([
 
 export const BuiltinCommandNameSchema = z.enum([
   "init-deep",
+  "fallback-off",
+  "fallback-on",
+  "fallback-reset",
+  "fallback-status",
 ])
 
 export const AgentOverrideConfigSchema = z.object({
@@ -86,6 +91,7 @@ export const AgentOverrideConfigSchema = z.object({
     .regex(/^#[0-9A-Fa-f]{6}$/)
     .optional(),
   permission: AgentPermissionSchema.optional(),
+  fallback: z.array(z.string()).optional(),
 })
 
 export const AgentOverridesSchema = z.object({
@@ -224,6 +230,13 @@ export const RalphLoopConfigSchema = z.object({
   state_dir: z.string().optional(),
 })
 
+export const RateLimitRecoveryConfigSchema = z.object({
+  /** Enable rate limit recovery (default: true) */
+  enabled: z.boolean().default(true),
+  /** Max seconds to wait for retry-after before falling back (default: 10) */
+  retry_after_threshold_seconds: z.number().min(1).max(60).default(10),
+})
+
 export const OhMyOpenCodeConfigSchema = z.object({
   $schema: z.string().optional(),
   disabled_mcps: z.array(McpNameSchema).optional(),
@@ -239,6 +252,8 @@ export const OhMyOpenCodeConfigSchema = z.object({
   auto_update: z.boolean().optional(),
   skills: SkillsConfigSchema.optional(),
   ralph_loop: RalphLoopConfigSchema.optional(),
+  rate_limit_recovery: RateLimitRecoveryConfigSchema.optional(),
+  global_fallback: z.array(z.string()).optional(),
 })
 
 export type OhMyOpenCodeConfig = z.infer<typeof OhMyOpenCodeConfigSchema>
@@ -254,5 +269,6 @@ export type DynamicContextPruningConfig = z.infer<typeof DynamicContextPruningCo
 export type SkillsConfig = z.infer<typeof SkillsConfigSchema>
 export type SkillDefinition = z.infer<typeof SkillDefinitionSchema>
 export type RalphLoopConfig = z.infer<typeof RalphLoopConfigSchema>
+export type RateLimitRecoveryConfig = z.infer<typeof RateLimitRecoveryConfigSchema>
 
 export { McpNameSchema, type McpName } from "../mcp/types"
