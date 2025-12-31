@@ -2,6 +2,12 @@ import type { CommandDefinition } from "../claude-code-command-loader"
 import type { BuiltinCommandName, BuiltinCommands } from "./types"
 import { INIT_DEEP_TEMPLATE } from "./templates/init-deep"
 import { RALPH_LOOP_TEMPLATE, CANCEL_RALPH_TEMPLATE } from "./templates/ralph-loop"
+import {
+  FALLBACK_OFF_TEMPLATE,
+  FALLBACK_ON_TEMPLATE,
+  FALLBACK_RESET_TEMPLATE,
+  FALLBACK_STATUS_TEMPLATE,
+} from "./templates/fallback-commands"
 
 const BUILTIN_COMMAND_DEFINITIONS: Record<BuiltinCommandName, Omit<CommandDefinition, "name">> = {
   "init-deep": {
@@ -30,6 +36,30 @@ $ARGUMENTS
     description: "(builtin) Cancel active Ralph Loop",
     template: `<command-instruction>
 ${CANCEL_RALPH_TEMPLATE}
+</command-instruction>`,
+  },
+  "fallback-off": {
+    description: "(builtin) Disable rate limit recovery for this session",
+    template: `<command-instruction>
+${FALLBACK_OFF_TEMPLATE}
+</command-instruction>`,
+  },
+  "fallback-on": {
+    description: "(builtin) Enable rate limit recovery for this session",
+    template: `<command-instruction>
+${FALLBACK_ON_TEMPLATE}
+</command-instruction>`,
+  },
+  "fallback-reset": {
+    description: "(builtin) Reset to primary model, ending fallback mode",
+    template: `<command-instruction>
+${FALLBACK_RESET_TEMPLATE}
+</command-instruction>`,
+  },
+  "fallback-status": {
+    description: "(builtin) Show current fallback recovery status",
+    template: `<command-instruction>
+${FALLBACK_STATUS_TEMPLATE}
 </command-instruction>`,
   },
 }
