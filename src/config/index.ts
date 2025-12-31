@@ -23,4 +23,5 @@ export type {
   ExperimentalConfig,
   DynamicContextPruningConfig,
   RalphLoopConfig,
+  RateLimitRecoveryConfig,
 } from "./schema"
