@@ -23,3 +23,11 @@ export { createInteractiveBashSessionHook } from "./interactive-bash-session";
 export { createEmptyMessageSanitizerHook } from "./empty-message-sanitizer";
 export { createThinkingBlockValidatorHook } from "./thinking-block-validator";
 export { createRalphLoopHook, type RalphLoopHook } from "./ralph-loop";
+export { 
+  createRateLimitRecoveryHook, 
+  type RateLimitRecoveryOptions,
+  handleFallbackOff,
+  handleFallbackOn,
+  handleFallbackReset,
+  handleFallbackStatus,
+} from "./rate-limit-recovery";
