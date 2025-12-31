@@ -40,6 +40,10 @@ export function createRateLimitRecoveryHook(
   const config = options.config
   const rateLimitConfig = options.rateLimitConfig
   const retryThreshold = rateLimitConfig?.retry_after_threshold_seconds ?? RETRY_CONFIG.retryAfterThresholdSeconds
+  
+  // Check if hook is explicitly disabled via config
+  // Default is enabled (true) if rate_limit_recovery config is not present
+  const isEnabled = rateLimitConfig?.enabled !== false
 
   const getState = (): RateLimitRecoveryState => state
 
@@ -48,6 +52,8 @@ export function createRateLimitRecoveryHook(
   }: {
     event: { type: string; properties?: unknown }
   }): Promise<void> => {
+    // If hook is disabled via config, skip all processing
+    if (!isEnabled) return
     const props = event.properties as Record<string, unknown> | undefined
 
     if (event.type === "session.deleted") {
