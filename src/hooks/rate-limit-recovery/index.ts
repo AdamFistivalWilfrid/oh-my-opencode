@@ -38,7 +38,7 @@ export interface RateLimitRecoveryHook {
 type Client = {
   session: {
     promptAsync: (opts: {
-      path: { sessionID: string }
+      path: { id: string }
       body: { parts: Array<{ type: string; text: string }> }
       query: { directory: string }
     }) => Promise<unknown>
@@ -212,7 +212,7 @@ export function createRateLimitRecoveryHook(
     // Send "Continue" to trigger retry with new model
     try {
       await (ctx.client as unknown as Client).session.promptAsync({
-        path: { sessionID },
+        path: { id: sessionID },
         body: { parts: [{ type: "text", text: "Continue" }] },
         query: { directory: ctx.directory },
       })
