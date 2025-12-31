@@ -25,6 +25,7 @@ import {
   createEmptyMessageSanitizerHook,
   createThinkingBlockValidatorHook,
   createRalphLoopHook,
+  createRateLimitRecoveryHook,
 } from "./hooks";
 import { createGoogleAntigravityAuthPlugin } from "./auth/antigravity";
 import {
@@ -316,6 +317,13 @@ const OhMyOpenCodePlugin: Plugin = async (ctx) => {
 
   const ralphLoop = isHookEnabled("ralph-loop")
     ? createRalphLoopHook(ctx, { config: pluginConfig.ralph_loop })
+    : null;
+
+  const rateLimitRecovery = isHookEnabled("rate-limit-recovery")
+    ? createRateLimitRecoveryHook(ctx, {
+        config: pluginConfig,
+        rateLimitConfig: pluginConfig.rate_limit_recovery,
+      })
     : null;
 
   const backgroundManager = new BackgroundManager(ctx);
@@ -626,6 +634,7 @@ const OhMyOpenCodePlugin: Plugin = async (ctx) => {
       await agentUsageReminder?.event(input);
       await interactiveBashSession?.event(input);
       await ralphLoop?.event(input);
+      await rateLimitRecovery?.event(input);
 
       const { event } = input;
       const props = event.properties as Record<string, unknown> | undefined;
