@@ -737,6 +737,17 @@ const OhMyOpenCodePlugin: Plugin = async (ctx) => {
       await agentUsageReminder?.["tool.execute.after"](input, output);
       await interactiveBashSession?.["tool.execute.after"](input, output);
     },
+
+    "chat.params": async (input, output) => {
+      const sessionID = input.sessionID;
+      const messageWithModel = input.message as { model?: { providerID: string; modelID: string } };
+      
+      const thinkModeInput = { parts: [], message: messageWithModel };
+      await thinkMode?.["chat.params"]?.(thinkModeInput, sessionID);
+
+      const rateLimitInput = { message: messageWithModel, parts: [] };
+      await rateLimitRecovery?.["chat.params"]?.(rateLimitInput, sessionID);
+    },
   };
 };
 

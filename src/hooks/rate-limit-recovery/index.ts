@@ -1,6 +1,6 @@
 import type { PluginInput } from "@opencode-ai/plugin"
 import type { OhMyOpenCodeConfig, RateLimitRecoveryConfig } from "../../config"
-import type { FallbackSessionState, RateLimitRecoveryState } from "./types"
+import type { FallbackSessionState, RateLimitRecoveryState, ChatParamsInput } from "./types"
 import { RETRY_CONFIG } from "./types"
 import { parseRetriableError } from "./error-parser"
 import { resolveFallbackModel, getAgentPrimaryModel } from "./fallback-resolver"
@@ -12,6 +12,8 @@ import {
   resetToPrimary,
   setRecoveryEnabled,
   deleteSessionState,
+  markPendingRetry,
+  clearPendingRetry,
 } from "./state-manager"
 import {
   showFallbackToast,
@@ -29,7 +31,18 @@ export interface RateLimitRecoveryOptions {
 
 export interface RateLimitRecoveryHook {
   event: (input: { event: { type: string; properties?: unknown } }) => Promise<void>
+  "chat.params": (output: ChatParamsInput, sessionID: string) => Promise<void>
   getState: () => RateLimitRecoveryState
+}
+
+type Client = {
+  session: {
+    promptAsync: (opts: {
+      path: { sessionID: string }
+      body: { parts: Array<{ type: string; text: string }> }
+      query: { directory: string }
+    }) => Promise<unknown>
+  }
 }
 
 export function createRateLimitRecoveryHook(
@@ -46,6 +59,35 @@ export function createRateLimitRecoveryHook(
   const isEnabled = rateLimitConfig?.enabled !== false
 
   const getState = (): RateLimitRecoveryState => state
+
+  // chat.params hook - intercepts requests and switches model if needed
+  const chatParams = async (
+    output: ChatParamsInput,
+    sessionID: string
+  ): Promise<void> => {
+    if (!isEnabled) return
+
+    const sessionState = getSessionState(state, sessionID)
+    if (!sessionState?.isOnFallback || !sessionState.pendingRetry) return
+
+    // Clear pending retry flag
+    clearPendingRetry(state, sessionID)
+
+    // Switch the model to fallback
+    const [providerID, ...modelParts] = sessionState.currentModel.split("/")
+    const modelID = modelParts.join("/")
+    
+    if (providerID && modelID) {
+      output.message.model = {
+        providerID,
+        modelID,
+      }
+      log("[rate-limit-recovery] chat.params switched model to fallback", {
+        sessionID,
+        newModel: sessionState.currentModel,
+      })
+    }
+  }
 
   const event = async ({
     event,
@@ -157,6 +199,9 @@ export function createRateLimitRecoveryHook(
       parsed.message
     )
 
+    // Mark pending retry so chat.params hook knows to switch model
+    markPendingRetry(state, sessionID)
+
     await showFallbackToast(
       ctx.client,
       sessionState.currentModel,
@@ -164,16 +209,16 @@ export function createRateLimitRecoveryHook(
       parsed.errorType
     )
 
+    // Send "Continue" to trigger retry with new model
     try {
-      await ctx.client.session.retry({
-        path: { id: sessionID },
-        query: { 
-          directory: ctx.directory,
-          model: fallback.model
-        },
+      await (ctx.client as unknown as Client).session.promptAsync({
+        path: { sessionID },
+        body: { parts: [{ type: "text", text: "Continue" }] },
+        query: { directory: ctx.directory },
       })
+      log("[rate-limit-recovery] Sent Continue prompt for retry", { sessionID })
     } catch (err) {
-      log("[rate-limit-recovery] Failed to retry with fallback", { 
+      log("[rate-limit-recovery] Failed to send Continue prompt", { 
         sessionID, 
         error: String(err) 
       })
@@ -182,6 +227,7 @@ export function createRateLimitRecoveryHook(
 
   return {
     event,
+    "chat.params": chatParams,
     getState,
   }
 }

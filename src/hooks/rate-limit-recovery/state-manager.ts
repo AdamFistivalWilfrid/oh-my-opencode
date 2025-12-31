@@ -87,3 +87,23 @@ export function deleteSessionState(
 ): void {
   state.stateBySession.delete(sessionID)
 }
+
+export function markPendingRetry(
+  state: RateLimitRecoveryState,
+  sessionID: string
+): void {
+  const sessionState = state.stateBySession.get(sessionID)
+  if (sessionState) {
+    sessionState.pendingRetry = true
+  }
+}
+
+export function clearPendingRetry(
+  state: RateLimitRecoveryState,
+  sessionID: string
+): void {
+  const sessionState = state.stateBySession.get(sessionID)
+  if (sessionState) {
+    sessionState.pendingRetry = false
+  }
+}

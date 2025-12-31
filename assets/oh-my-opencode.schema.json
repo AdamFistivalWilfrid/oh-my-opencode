@@ -50,6 +50,7 @@
           "empty-task-response-detector",
           "think-mode",
           "anthropic-context-window-limit-recovery",
+          "rate-limit-recovery",
           "rules-injector",
           "background-notification",
           "auto-update-checker",
@@ -69,7 +70,11 @@
       "items": {
         "type": "string",
         "enum": [
-          "init-deep"
+          "init-deep",
+          "fallback-off",
+          "fallback-on",
+          "fallback-reset",
+          "fallback-status"
         ]
       }
     },
@@ -192,8 +197,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -313,8 +317,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -434,8 +437,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -555,8 +557,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -676,8 +677,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -797,8 +797,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -918,8 +917,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -1039,8 +1037,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -1160,8 +1157,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -1281,8 +1277,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         },
@@ -1402,8 +1397,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "description": "Ordered list of fallback model identifiers to use when primary model fails"
+              }
             }
           }
         }
@@ -1732,16 +1726,14 @@
       "type": "object",
       "properties": {
         "enabled": {
-          "type": "boolean",
           "default": true,
-          "description": "Enable automatic rate limit recovery and model fallback"
+          "type": "boolean"
         },
         "retry_after_threshold_seconds": {
+          "default": 10,
           "type": "number",
           "minimum": 1,
-          "maximum": 60,
-          "default": 10,
-          "description": "Max seconds to wait for retry-after header before switching to fallback model"
+          "maximum": 60
         }
       }
     },
@@ -1749,8 +1741,7 @@
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Global fallback model chain used when agent-specific fallbacks are exhausted"
+      }
     }
   }
 }

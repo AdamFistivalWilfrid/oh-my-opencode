@@ -25,6 +25,17 @@ export interface FallbackSessionState {
   fallbackEvents: FallbackEvent[]
   recoveryEnabled: boolean
   agentName?: string
+  pendingRetry?: boolean
+}
+
+export interface ChatParamsInput {
+  message: {
+    model?: {
+      providerID: string
+      modelID: string
+    }
+  }
+  parts: Array<{ type: string; text?: string }>
 }
 
 export interface RateLimitRecoveryState {
